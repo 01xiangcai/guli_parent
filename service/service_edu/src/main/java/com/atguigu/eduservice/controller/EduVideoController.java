@@ -2,6 +2,7 @@ package com.atguigu.eduservice.controller;
 
 
 import com.atguigu.commonutils.R;
+import com.atguigu.eduservice.client.VodClient;
 import com.atguigu.eduservice.entity.EduVideo;
 import com.atguigu.eduservice.service.EduVideoService;
 import io.swagger.annotations.Api;
@@ -27,6 +28,9 @@ public class EduVideoController {
     @Resource
     private EduVideoService eduVideoService;
 
+    @Resource
+    private VodClient vodClient;
+
 
     @ApiOperation(value = "添加小节")
     @PostMapping("addVideo")
@@ -37,10 +41,16 @@ public class EduVideoController {
 
     @ApiOperation(value = "根据id删除小节")
     @DeleteMapping("delVideo/{id}")
-    //TODO 删除小节同时删除阿里云视频
+    // 删除小节同时删除阿里云视频
     public R delVideo(@PathVariable String id){
+        EduVideo eduVideo = eduVideoService.getById(id);
+        String videoId = eduVideo.getVideoSourceId();
+        if(videoId!=null){
+            vodClient.delVideo(videoId);
+        }
         eduVideoService.removeById(id);
         return R.ok();
+
     }
 
     @ApiOperation(value = "根据id查询小节")
@@ -56,6 +66,8 @@ public class EduVideoController {
         eduVideoService.updateById(eduVideo);
         return R.ok();
     }
+
+
 
 }
 

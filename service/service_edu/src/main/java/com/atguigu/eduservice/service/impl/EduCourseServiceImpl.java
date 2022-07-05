@@ -1,6 +1,7 @@
 package com.atguigu.eduservice.service.impl;
 
 import com.alibaba.excel.util.StringUtils;
+import com.atguigu.eduservice.client.VodClient;
 import com.atguigu.eduservice.entity.EduChapter;
 import com.atguigu.eduservice.entity.EduCourse;
 import com.atguigu.eduservice.entity.EduCourseDescription;
@@ -21,6 +22,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -41,6 +44,9 @@ public class EduCourseServiceImpl extends ServiceImpl<EduCourseMapper, EduCourse
 
     @Resource
     EduChapterService eduChapterService;
+
+    @Resource
+    VodClient vodClient;
 
     @Override
     public String addCourseInfo(CourseInfoForm courseInfoForm) {
@@ -145,7 +151,22 @@ public class EduCourseServiceImpl extends ServiceImpl<EduCourseMapper, EduCourse
 
     @Override
     public void delCourseInfo(String id) {
-        //1.TODO 删除视频
+
+        //1 删除视频
+        //1.1查询相关小节
+        QueryWrapper<EduVideo> videoIdWrapper = new QueryWrapper<>();
+        videoIdWrapper.eq("course_id",id);
+        List<EduVideo> list = eduVideoService.list(videoIdWrapper);
+        //1.2遍历获取视频id
+        List<String> videoIdList = new ArrayList<>();
+        for (int i = 0; i <list.size() ; i++) {
+            EduVideo eduVideo = list.get(i);
+            videoIdList.add(eduVideo.getVideoSourceId());
+        }
+        //1.3判断，调接口
+        if(videoIdList.size()>0){
+            vodClient.delVideoList(videoIdList);
+        }
 
         //2.删除小节
         QueryWrapper<EduVideo> videoWrapper =new QueryWrapper<>();
